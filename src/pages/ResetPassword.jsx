@@ -1,55 +1,81 @@
+import React, { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import API from '../api';
+function ResetPassword() {
+  const { token } = useParams();
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [resetDone, setResetDone] = useState(false);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
 
-export default function ResetPassword() {
-const { token } = useParams();
-const navigate = useNavigate();
-const [valid, setValid] = useState(null);
-const [password, setPassword] = useState('');
-const [msg, setMsg] = useState(null);
-const [err, setErr] = useState(null);
+    try {
+      const response = await fetch(`http://localhost:5000/api/reset-password/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
 
+      const data = await response.json();
 
-useEffect(() => {
-API.get(`/reset-password/${token}`)
-.then(res => setValid(res.data.valid))
-.catch(() => setValid(false));
-}, [token]);
+      if (response.ok) {
+        setMessage("✅ Password reset successful!");
+        setResetDone(true);
+      } else {
+        setMessage("❌ " + data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage("Something went wrong.");
+    }
+  };
 
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-500 p-4">
+      <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-96 text-white text-center border border-white/20">
+        <h2 className="text-3xl font-bold mb-4">Reset Password</h2>
 
-const handleSubmit = async (e) => {
-e.preventDefault();
-try {
-const res = await API.post(`/reset-password/${token}`, { password });
-setMsg(res.data.message);
-setTimeout(() => navigate('/'), 2000);
-} catch (error) {
-setErr(error.response?.data?.message || 'Something went wrong');
+        {!resetDone ? (
+          <form onSubmit={handleSubmit}>
+            <label className="block mb-2 font-medium text-left text-gray-200">
+              New Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 mb-4 rounded bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              placeholder="Enter new password"
+              required
+            />
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white py-2 rounded font-semibold hover:opacity-90 transition-all duration-200"
+            >
+              Update Password
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-lg">{message}</p>
+            <Link
+              to="/login"
+              className="inline-block bg-gradient-to-r from-green-400 via-teal-400 to-blue-500 text-white px-6 py-2 rounded font-semibold hover:opacity-90 transition-all duration-200"
+            >
+              Go to Login
+            </Link>
+          </div>
+        )}
+
+        {message && !resetDone && (
+          <p className="mt-4 text-sm text-gray-200">{message}</p>
+        )}
+      </div>
+    </div>
+  );
 }
-};
 
-
-if (valid === null) return <div className="container py-5">Checking token...</div>;
-if (!valid) return <div className="container py-5"><div className="alert alert-danger">Invalid or expired link</div></div>;
-
-
-return (
-<div className="container py-5" style={{maxWidth:'480px'}}>
-<h3>Reset Password</h3>
-{msg && <div className="alert alert-success">{msg}</div>}
-{err && <div className="alert alert-danger">{err}</div>}
-
-
-<form onSubmit={handleSubmit}>
-<div className="mb-3">
-<label>New Password</label>
-<input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-</div>
-<button className="btn btn-primary">Change Password</button>
-</form>
-</div>
-);
-}
+export default ResetPassword;

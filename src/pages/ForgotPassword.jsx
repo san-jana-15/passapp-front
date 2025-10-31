@@ -1,80 +1,55 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { BACKEND_URL } from "../api";
 
-const ForgotPassword = () => {
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  // Simple email format validation regex
-  const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setError("");
 
-    // Step 1: Check if field is empty
-    if (!email) {
-      setError("Please enter your email address.");
-      return;
-    }
-
-    // Step 2: Validate email format
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    // Step 3: Call API if validation passes
     try {
-      const res = await axios.post("/api/forgot-password", { email });
-      setMessage(res.data.message || "Reset link sent to your email.");
-      setEmail("");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Something went wrong. Try again later."
-      );
+      const response = await fetch(`${BACKEND_URL}/api/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      setMessage(response.ok ? `✅ ${data.message}` : `❌ ${data.message}`);
+    } catch {
+      setMessage("❌ Something went wrong.");
     }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h2 className="mb-4 text-center">Forgot Password</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364] text-white">
+      <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-lg w-96 border border-white/20">
+        <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 to-green-400 bg-clip-text text-transparent">
+          Forgot Password
+        </h2>
 
-      {error && (
-        <div className="alert alert-danger text-center" role="alert">
-          {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="alert alert-success text-center" role="alert">
-          {message}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="form-group mb-3">
-          <label>Email</label>
+        <form onSubmit={handleSubmit}>
           <input
             type="email"
-            className="form-control"
+            placeholder="Enter your registered email"
+            className="w-full mb-4 p-3 rounded-lg bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            required
           />
-        </div>
 
-        <button type="submit" className="btn btn-primary w-100">
-          Send Reset Email
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-green-400 to-cyan-500 py-2 rounded-lg font-semibold hover:opacity-90 transition"
+          >
+            Send Reset Link
+          </button>
+        </form>
+
+        {message && <p className="mt-4 text-center">{message}</p>}
+      </div>
     </div>
   );
-};
-
-export default ForgotPassword;
+}

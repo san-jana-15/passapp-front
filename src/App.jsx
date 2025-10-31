@@ -1,12 +1,20 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
-
-export default function App() {
-return (
-<div className="container py-5 text-center">
-<h1>Password Reset App</h1>
-<p><Link to="/forgot-password" className="btn btn-primary">Forgot Password</Link></p>
-</div>
-);
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+      </Routes>
+    </Router>
+  );
 }
+
+export default App;

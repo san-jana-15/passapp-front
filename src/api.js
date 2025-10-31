@@ -1,5 +1,2 @@
-import axios from 'axios';
-
-
-const API = axios.create({ baseURL: '/api' });
-export default API;
+// src/api.js
+export const BACKEND_URL = "https://passapp-back.onrender.com/";
